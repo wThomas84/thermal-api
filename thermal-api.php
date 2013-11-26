@@ -2,7 +2,7 @@
 
 /*
   Plugin Name: Thermal API
-  Version:     0.7.7
+  Version:     0.7.7__withAllCustomFields
   Plugin URI:  http://thermal-api.com/
   Description: The power of WP_Query in a RESTful API.
   Author:      Voce Platforms
@@ -23,3 +23,20 @@ if ( version_compare( phpversion(), THERMAL_API_MIN_PHP_VER, '>=' ) ) {
 	require(__DIR__ . '/dispatcher.php');
 	new Voce\Thermal\API_Dispatcher();
 }
+
+
+add_filter( 'thermal_post_entity',  function($data, &$post, $state ) {
+    if( $state === 'read' ){
+
+        $custom_fields = array();
+        $custom_field_keys = get_post_custom_keys();
+        foreach ( $custom_field_keys as $key => $fieldName ) {
+            $valuet = trim($fieldName);
+            if ( '_' == $valuet{0} )
+                continue;
+            $custom_fields[$fieldName] = get_post_meta($post->ID, $fieldName, true);
+        }
+        $data->meta->custom_fields = (object) $custom_fields;
+    }
+    return $data;
+}, 10, 3);
